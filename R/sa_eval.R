@@ -300,7 +300,7 @@ sae_manual <- function(file, group, get_grade){
   if(missing("group")) return(cat0("ERROR: you must provide your group"))
   if(!regexpr("\\.csv$", file)>0) return(cat0("ERROR: file must be a CSV"))
   if(missing("get_grade")) get_grade = F
-  return(sa_perun(sol = file, gr = group, satype = "manual"), get_grade)
+  return(sa_perun(sol = file, gr = group, satype = "manual", get_grade))
 }
 
 stand_util <- function(schedule, stand_info){
