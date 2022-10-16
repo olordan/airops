@@ -218,8 +218,9 @@ get_eval <- function(sol, gr) {
 
 sa_perun <- function(sol, gr, satype = c("manual", "heur"), get_grade){
   res <- get_eval(sol = sol, gr = gr)
+  if(is.null(res)) return(cat())
 
-  if(!get_eval){
+  if(!get_grade){
     cat0("## Global stats")
 
     cat0("Total utility: ", round(res$r1, 2))
