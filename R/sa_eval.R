@@ -301,6 +301,11 @@ sae_manual <- function(file, group, get_grade){
   if(missing("group")) return(cat0("ERROR: you must provide your group"))
   if(!regexpr("\\.csv$", file)>0) return(cat0("ERROR: file must be a CSV"))
   if(missing("get_grade")) get_grade = F
+  fl_name <- strsplit(file, "/")[[1]]
+  fl_name <- fl_name[length(fl_name)]
+  if(fl_name != "sa_manual.csv") return(cat0("ERROR: your file must be named 'sa_manual.csv'"))
+  rm(fl_name)
+
   return(sa_perun(sol = file, gr = group, satype = "manual", get_grade))
 }
 
@@ -334,8 +339,19 @@ stand_util <- function(schedule, stand_info){
 sae_heur2 <- function(file, sch_to_test = 1:10, sa_csv, group, get_grade){
   if(missing("file")) return(cat0("ERROR: you must provide your file"))
   if(!regexpr("\\.txt$", file)>0) return(cat0("ERROR: file must be a plain TXT"))
-  if(!missing("sa_csv")) if(!regexpr("\\.csv$", sa_csv)>0) return(cat0("ERROR: sa_csv must be a CSV"))
+  if(!missing("sa_csv")) {
+    if(!is.na(sa_csv)) {
+      if(!regexpr("\\.csv$", sa_csv)>0) return(cat0("ERROR: sa_csv must be a CSV"))
+      fl_name <- strsplit(sa_csv, "/")[[1]]
+      fl_name <- fl_name[length(fl_name)]
+      if(fl_name != "sa_heur.csv") return(cat0("ERROR: your results file must be named 'sa_heur.csv'"))
+    }
+  }
   if(missing("get_grade")) get_grade = F
+  fl_name <- strsplit(file, "/")[[1]]
+  fl_name <- fl_name[length(fl_name)]
+  if(fl_name != "sa_heur.txt") return(cat0("ERROR: your heuristic file must be named 'sa_heur.txt'"))
+  rm(fl_name)
 
   suppressWarnings(rm("stand_util"))
   el_fold <- getwd()
@@ -362,57 +378,59 @@ sae_heur2 <- function(file, sch_to_test = 1:10, sa_csv, group, get_grade){
 
   res_sch <- 0
   if(!missing("sa_csv")){
-    for(inu in 1){
-      estabe = 0
-      cat0("## SA csv evaluation")
-      loseu <- fread(sa_csv, header = T)
-      cat0("Your file:")
-      print(loseu)
-      cat0()
-      if(length(sum(names(loseu) == "callsign")) != 1) {
-        cat0("ERROR: No callsign column")
+    if(!is.na(sa_csv)) {
+      for(inu in 1){
+        estabe = 0
+        cat0("## SA csv evaluation")
+        loseu <- fread(sa_csv, header = T)
+        cat0("Your file:")
+        print(loseu)
         cat0()
-        next
-      }
-      if(length(sum(names(loseu) == "op")) != 1)  {
-        cat0("ERROR: No op column")
-        cat0()
-        next
-      }
-      if(length(sum(names(loseu) == "stand")) != 1) {
-        cat0("ERROR: No stand column")
-        cat0()
-        next
-      }
-      if(!identical(names(loseu), c("callsign", "op", "stand")))  {
-        cat0("ERROR: Columns are not in the right order")
-        cat0()
-        next
-      }
-      if(sum(!(loseu$op %in% c("A","D","P")))>0)  {
-        cat0("ERROR: op is not correct")
-        cat0()
-        next
+        if(length(sum(names(loseu) == "callsign")) != 1) {
+          cat0("ERROR: No callsign column")
+          cat0()
+          next
+        }
+        if(length(sum(names(loseu) == "op")) != 1)  {
+          cat0("ERROR: No op column")
+          cat0()
+          next
+        }
+        if(length(sum(names(loseu) == "stand")) != 1) {
+          cat0("ERROR: No stand column")
+          cat0()
+          next
+        }
+        if(!identical(names(loseu), c("callsign", "op", "stand")))  {
+          cat0("ERROR: Columns are not in the right order")
+          cat0()
+          next
+        }
+        if(sum(!(loseu$op %in% c("A","D","P")))>0)  {
+          cat0("ERROR: op is not correct")
+          cat0()
+          next
+        }
+        estabe = estabe + 1
+
+        res <- myTryCatch(sa_heur(schedule = group, stand_info = "stands_info.csv"), nmb = 3)
+
+        cat0(res$tspent)
+        if(!is.null(res$warning)) {
+          cat("WARNING: ")
+          cat0(as.character(res$warning))
+        }
+        if(!is.null(res$error)) {
+          cat0("ERROR: Code doesn't run")
+          cat0(as.character(res$error))
+          next
+        }
       }
       estabe = estabe + 1
-
-      res <- myTryCatch(sa_heur(schedule = group, stand_info = "stands_info.csv"), nmb = 3)
-
-      cat0(res$tspent)
-      if(!is.null(res$warning)) {
-        cat("WARNING: ")
-        cat0(as.character(res$warning))
-      }
-      if(!is.null(res$error)) {
-        cat0("ERROR: Code doesn't run")
-        cat0(as.character(res$error))
-        next
-      }
+      res_sch <- 10*estabe/2
+      cat0("Grade: ", res_sch)
+      rm(loseu, res, estabe)
     }
-    estabe = estabe + 1
-    res_sch <- 10*estabe/2
-    cat0("Grade: ", res_sch)
-    rm(loseu, res, estabe)
   }
 
   cat0("## Heuristic evaluation")
@@ -480,80 +498,107 @@ sae_heur2 <- function(file, sch_to_test = 1:10, sa_csv, group, get_grade){
 sae_heur1 <- function(file, sch_to_test = 1:10, st_fill, get_grade){
   if(missing("file")) return(cat0("ERROR: you must provide your file"))
   if(!regexpr("\\.txt$", file)>0) return(cat0("ERROR: file must be a plain TXT"))
-  if(!missing("st_fill")) if(!regexpr("\\.csv$", st_fill)>0) return(cat0("ERROR: st_fill must be a CSV"))
+  if(!missing("st_fill")) {
+    if(!is.na(st_fill)) {
+      if(!regexpr("\\.csv$", st_fill)>0) return(cat0("ERROR: st_fill must be a CSV"))
+      fl_name <- strsplit(st_fill, "/")[[1]]
+      fl_name <- fl_name[length(fl_name)]
+      if(fl_name != "lebl_stands.csv") return(cat0("ERROR: your LEBL stands file must be named 'lebl_stands.csv'"))
+    }
+  }
+  fl_name <- strsplit(file, "/")[[1]]
+  fl_name <- fl_name[length(fl_name)]
+  if(fl_name != "stand_util.txt") return(cat0("ERROR: your heuristic file must be named 'stand_util.txt'"))
+  rm(fl_name)
 
   el_fold <- getwd()
 
   stands_clean <- copy(clean_s)
-  stands_clean[is.na(T1), T1 := 0]
-  stands_clean[is.na(T2), T2 := 0]
-  stands_clean[is.na(sch), sch := 0]
-  stands_clean[is.na(shut), shut := 0]
-  stands_clean[is.na(no_sch), no_sch := 0]
-  stands_clean[is.na(no_ue), no_ue := 0]
-  stands_clean[is.na(park), park := 0]
+  stands_clean[is.na(stands_clean)] <- 0
+
+  stands_clean2 <- copy(stands_clean)
+  stands_clean2[T2 == 1, shut := 0]
+  stands_clean2[T1 == 1 & shut == 0, shut := 5]
+  stands_clean2[ramp == "R0", c("sch", "park") := 5]
 
   pena_fill = -10
   if(!missing("st_fill")){
-    cat0("## Stand preferences evaluation (BETA)")
-    pena_fill = 0
-    fill_seu <- fread(st_fill)
-    stmix <- merge(stands_clean, fill_seu, by = c("ramp","stand","ac_max","S1","S2","S3"))
-    stmix[, `:=` (contact = abs(contact.x - contact.y), T1 = abs(T1.x - T1.y),
-                  T2 = abs(T2.x - T2.y), sch = abs(sch.x - sch.y),
-                  shut = abs(shut.x - shut.y), no_sch = abs(no_sch.x - no_sch.y),
-                  no_ue = abs(no_ue.x - no_ue.y),  park = abs(park.x - park.y))]
-    if(nrow(stmix) < 209) {
-      pena_fill = pena_fill + 10
-      cat0("Please check you have all rows and haven't changed any column with information: -10 p")
+    if(!is.na(st_fill)) {
+      cat0("## Stand preferences evaluation (BETA)")
+      pena_fill = 0
+      fill_seu <- fread(st_fill)
+      stmix <- merge(stands_clean2, fill_seu, by = c("ramp","stand","ac_max","S1","S2","S3"))
+      stmix[, id0 := seq(.N)]
+      stmix[, `:=` (contact = abs(contact.x - contact.y), T1 = abs(T1.x - T1.y),
+                    T2 = abs(T2.x - T2.y), sch = abs(sch.x - sch.y),
+                    shut = abs(shut.x - shut.y), no_sch = abs(no_sch.x - no_sch.y),
+                    no_ue = abs(no_ue.x - no_ue.y),  park = abs(park.x - park.y))]
+
+      stmix[sch.x == 0 & sch.y != 0, sch := 4]
+      stmix[shut.x == 0 & shut.y != 0, shut := 4]
+      stmix[no_sch.x == 0 & no_sch.y != 0, no_sch := 4]
+      stmix[no_ue.x == 0 & no_ue.y != 0, no_ue := 4]
+      stmix[park.x == 0 & park.y != 0, park := 4]
+
+      stmix[sch.x != 0 & sch.y == 0, sch := abs(6 - sch.x)]
+      stmix[shut.x != 0 & shut.y == 0, shut := abs(6 - shut.x)]
+      stmix[no_sch.x != 0 & no_sch.y == 0, no_sch := abs(6 - no_sch.x)]
+      stmix[no_ue.x != 0 & no_ue.y == 0, no_ue := abs(6 - no_ue.x)]
+      stmix[park.x != 0 & park.y == 0, park := abs(6 - park.x)]
+
+      if(nrow(stmix) < 209) {
+        pena_fill = pena_fill + 10
+        cat0("Please check you have all rows and haven't changed any column with information: -10 p")
+      }
+      tst <- stmix[contact > 0, stand]
+      if(length(tst) > 0) {
+        pena_fill = pena_fill + length(tst)/2
+        cat0("Inconsistent Contact information: -", length(tst)/2, " p")
+        cat0("Stand/s: ", paste(tst, collapse = ", "))
+      }
+      tst <- stmix[T1 > 0 | T2 > 0, stand]
+      if(length(tst) > 0) {
+        pena_fill = pena_fill + length(tst)/2
+        cat0("Inconsistent Terminal information: -", length(tst)/2, " p")
+        cat0("Stand/s: ", paste(tst, collapse = ", "))
+      }
+      tst <- stmix[sch > 1 & sch < 5, stand]
+      if(length(tst) > 0) {
+        pena_fill = pena_fill + length(tst)/2
+        cat0("Inconsistent Schengen information: -", length(tst)/2, " p")
+        cat0("Stand/s: ", paste(tst, collapse = ", "))
+      }
+      tst <- stmix[shut > 1 & shut < 5, stand]
+      if(length(tst) > 0) {
+        pena_fill = pena_fill + length(tst)/2
+        cat0("Inconsistent Shuttle information: -", length(tst)/2, " p")
+        cat0("Stand/s: ", paste(tst, collapse = ", "))
+      }
+      tst <- stmix[no_sch > 1 & no_sch < 5, stand]
+      if(length(tst) > 0) {
+        pena_fill = pena_fill + length(tst)/2
+        cat0("Inconsistent Non-Schengen information: -", length(tst)/2, " p")
+        cat0("Stand/s: ", paste(tst, collapse = ", "))
+      }
+      tst <- stmix[no_ue > 1 & no_ue < 5, stand]
+      if(length(tst) > 0) {
+        pena_fill = pena_fill + length(tst)/2
+        cat0("Inconsistent Non-UE information: -", length(tst)/2, " p")
+        cat0("Stand/s: ", paste(tst, collapse = ", "))
+      }
+      tst <- stmix[park > 1 & park < 5, stand]
+      if(length(tst) > 0) {
+        pena_fill = pena_fill + length(tst)/2
+        cat0("Inconsistent Parking information: -", length(tst)/2, " p")
+        cat0("Stand/s: ", paste(tst, collapse = ", "))
+      }
+      pena_fill = -min(10, pena_fill)
+      if(pena_fill < 0) cat0("\nPenalty for Stand preferences: ", pena_fill, "/10 = ", round(pena_fill/10, 2), " p")
+      cat0()
     }
-    tst <- stmix[contact > 0, stand]
-    if(length(tst) > 0) {
-      pena_fill = pena_fill + length(tst)/2
-      cat0("Inconsistent Contact information: -", length(tst)/2, " p")
-      cat0("Stand/s: ", paste(tst, collapse = ", "))
-    }
-    tst <- stmix[T1 > 0 | T2 > 0, unique(stand)]
-    if(length(tst) > 0) {
-      pena_fill = pena_fill + length(tst)/2
-      cat0("Inconsistent Terminal information: -", length(tst)/2, " p")
-      cat0("Stand/s: ", paste(tst, collapse = ", "))
-    }
-    st <- stmix[sch > 1 & sch < 5, stand]
-    if(length(tst) > 0) {
-      pena_fill = pena_fill + length(tst)/2
-      cat0("Inconsistent Schengen information: -", length(tst)/2, " p")
-      cat0("Stand/s: ", paste(tst, collapse = ", "))
-    }
-    tst <- stmix[shut > 1 & shut < 5, stand]
-    if(length(tst) > 0) {
-      pena_fill = pena_fill + length(tst)/2
-      cat0("Inconsistent Shuttle information: -", length(tst)/2, " p")
-      cat0("Stand/s: ", paste(tst, collapse = ", "))
-    }
-    tst <- stmix[no_sch > 1 & no_sch < 5, stand]
-    if(length(tst) > 0) {
-      pena_fill = pena_fill + length(tst)/2
-      cat0("Inconsistent Non-Schengen information: -", length(tst)/2, " p")
-      cat0("Stand/s: ", paste(tst, collapse = ", "))
-    }
-    tst <- stmix[no_ue > 1 & no_ue < 5, stand]
-    if(length(tst) > 0) {
-      pena_fill = pena_fill + length(tst)/2
-      cat0("Inconsistent Non-UE information: -", length(tst)/2, " p")
-      cat0("Stand/s: ", paste(tst, collapse = ", "))
-    }
-    tst <- stmix[park > 1 & park < 5, stand]
-    if(length(tst) > 0) {
-      pena_fill = pena_fill + length(tst)/2
-      cat0("Inconsistent Parking information: -", length(tst)/2, " p")
-      cat0("Stand/s: ", paste(tst, collapse = ", "))
-    }
-    pena_fill = -min(10, pena_fill)
-    if(pena_fill < 0) cat0("\nPenalty for Stand preferences: ", pena_fill, "/10 = ", round(pena_fill/10, 2), " p")
-    cat0()
   }
   pena_fill <- round(pena_fill/10, 2)
+  rm(stands_clean2)
 
   n_sch <- unique(round(sch_to_test[sch_to_test > 0 & sch_to_test < 11]))
 
@@ -708,4 +753,3 @@ sae_heur1 <- function(file, sch_to_test = 1:10, st_fill, get_grade){
   if(get_grade) return(round(mean(notaf),2) + pena_fill)
   return(cat())
 }
-

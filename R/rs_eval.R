@@ -16,6 +16,11 @@ rse_manual <- function(file, group, get_grade){
   if(missing("group")) return(cat0("ERROR: you must provide your group"))
   if(!regexpr("\\.csv$", file)>0) return(cat0("ERROR: file must be a CSV"))
   if(missing("get_grade")) get_grade = F
+  fl_name <- strsplit(file, "/")[[1]]
+  fl_name <- fl_name[length(fl_name)]
+  if(fl_name != "rst_manual.csv") return(cat0("ERROR: your file must be named 'rst_manual.csv'"))
+  rm(fl_name)
+
   sep_times <- wake_turbulence$WT_TOY
   loseu <- fread(file, header = T)
 
@@ -107,9 +112,28 @@ rse_manual <- function(file, group, get_grade){
 rse_heur <- function(file, toys_to_test = 1:10, recat_csv, icao_csv, group, get_grade){
   if(missing("file")) return(cat0("ERROR: you must provide your file"))
   if(!regexpr("\\.txt$", file)>0) return(cat0("ERROR: file must be a plain TXT"))
-  if(!missing("recat_csv")) if(!regexpr("\\.csv$", recat_csv)>0) return(cat0("ERROR: recat_csv must be a CSV"))
-  if(!missing("icao_csv")) if(!regexpr("\\.csv$", icao_csv)>0) return(cat0("ERROR: icao_csv must be a CSV"))
+  if(!missing("recat_csv")) {
+    if(!is.na(recat_csv)) {
+      if(!regexpr("\\.csv$", recat_csv)>0) return(cat0("ERROR: recat_csv must be a CSV"))
+      fl_name <- strsplit(recat_csv, "/")[[1]]
+      fl_name <- fl_name[length(fl_name)]
+      if(fl_name != "rs_recat.csv") return(cat0("ERROR: your RECAT file must be named 'rs_recat.csv'"))
+    }
+  }
+  if(!missing("icao_csv")) {
+    if(!is.na(icao_csv)) {
+      if(!regexpr("\\.csv$", icao_csv)>0) return(cat0("ERROR: icao_csv must be a CSV"))
+      fl_name <- strsplit(icao_csv, "/")[[1]]
+      fl_name <- fl_name[length(fl_name)]
+      if(fl_name != "rs_icao.csv") return(cat0("ERROR: your ICAO file must be named 'rs_icao.csv'"))
+    }
+  }
   if(missing("get_grade")) get_grade = F
+
+  fl_name <- strsplit(file, "/")[[1]]
+  fl_name <- fl_name[length(fl_name)]
+  if(fl_name != "rs_heur.txt") return(cat0("ERROR: your heuristic file must be named 'rs_heur.txt'"))
+  rm(fl_name)
 
   el_fold <- getwd()
   if((!missing("recat_csv") | !missing("icao_csv")) & missing("group")) return(cat0("ERROR: you must provide your group"))
@@ -142,9 +166,10 @@ rse_heur <- function(file, toys_to_test = 1:10, recat_csv, icao_csv, group, get_
 
   #check els seus csv ----
   wktt <- NULL
-  if(!missing("icao_csv")) wktt <- c(wktt, 1)
-  if(!missing("recat_csv")) wktt <- c(wktt, 2)
+  if(!missing("icao_csv")) if(!is.na(recat_csv)) wktt <- c(wktt, 1)
+  if(!missing("recat_csv")) if(!is.na(icao_csv)) wktt <- c(wktt, 2)
 
+  res_sch = 0
   if(length(wktt) > 0){
     sch_test <- fread(list.files("schedules/", full.names = T)[group], select = 1)
     estabe = estabe1 = 0
