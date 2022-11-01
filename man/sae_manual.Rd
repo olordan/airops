@@ -4,10 +4,10 @@
 \alias{sae_manual}
 \title{Stand Allocation Manual Evaluation}
 \usage{
-sae_manual(file, group)
+sae_manual(file, group, get_grade)
 }
 \arguments{
-\item{file}{File name in working directory or path to file. File ('.csv') following the exact format from Atenea.}
+\item{file}{File name in working directory or path to file. File ('sa_result.csv') following the exact format from Atenea.}
 
 \item{group}{Number of your group.}
 }
@@ -18,5 +18,5 @@ Report with information about your result.
 Self-evaluator for Activity 3 - SA Manual of Airport operations.
 }
 \examples{
-rse_manual(file = "sa_result.csv", group = 1)
+sae_manual(file = "sa_result.csv", group = 1)
 }

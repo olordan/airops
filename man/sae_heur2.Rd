@@ -4,14 +4,14 @@
 \alias{sae_heur2}
 \title{Stand Allocation Heuristic (part 2) Evaluation}
 \usage{
-sae_heur2(file, sch_to_test = 1:10, sa_csv, group)
+sae_heur2(file, sch_to_test = 1:10, sa_csv, group, get_grade)
 }
 \arguments{
-\item{file}{File name in working directory or path to file. File ('.txt') following the exact format from Atenea.}
+\item{file}{File name in working directory or path to file. File ('sa_heur.txt') following the exact format from Atenea.}
 
 \item{sch_to_test}{A vector with schedule numbers to check your heuristic against. Database has schedules and by default it runs all of them.}
 
-\item{sa_csv}{File name in working directory or path to file. File ('.csv') following the exact format from Atenea. Result of your heuristic on your group's schedule.}
+\item{sa_csv}{File name in working directory or path to file. File ('sa_heur.csv') following the exact format from Atenea. Result of your heuristic on your group's schedule.}
 
 \item{group}{Number of your group.}
 }

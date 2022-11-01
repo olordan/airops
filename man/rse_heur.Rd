@@ -4,16 +4,16 @@
 \alias{rse_heur}
 \title{Runway Sequencing Heuristic Evaluation}
 \usage{
-rse_heur(file, toys_to_test = 1:10, recat_csv, icao_csv, group)
+rse_heur(file, toys_to_test = 1:10, recat_csv, icao_csv, group, get_grade)
 }
 \arguments{
-\item{file}{File name in working directory or path to file. File ('.txt') following the exact format from Atenea.}
+\item{file}{File name in working directory or path to file. File ('rs_heur.txt') following the exact format from Atenea.}
 
 \item{toys_to_test}{A vector with toy numbers to check your heuristic against. Database has 10 toy models and by default it runs all of them.}
 
-\item{recat_csv}{File name in working directory or path to file. File ('.csv') following the exact format from Atenea. Result of your heuristic using RECAT wake turbulence on your group's schedule.}
+\item{recat_csv}{File name in working directory or path to file. File ('rs_recat.csv') following the exact format from Atenea. Result of your heuristic using RECAT wake turbulence on your group's schedule.}
 
-\item{icao_csv}{File name in working directory or path to file. File ('.csv') following the exact format from Atenea. Result of your heuristic using ICAO wake turbulence on your group's schedule.}
+\item{icao_csv}{File name in working directory or path to file. File ('rs_icao.csv') following the exact format from Atenea. Result of your heuristic using ICAO wake turbulence on your group's schedule.}
 
 \item{group}{Number of your group.}
 }

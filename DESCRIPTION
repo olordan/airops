@@ -12,4 +12,4 @@ Depends:
 Imports: R.utils, ggplot2, Rcpp (>= 0.11.0)
 LinkingTo: Rcpp
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.1

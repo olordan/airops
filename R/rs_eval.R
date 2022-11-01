@@ -3,7 +3,7 @@
 #' @description
 #' Self-evaluator for Activity 1 - RS Manual of Airport operations.
 #'
-#' @param file File name in working directory or path to file. File ('.csv') following the exact format from Atenea.
+#' @param file File name in working directory or path to file. File ('rst_result.csv') following the exact format from Atenea.
 #' @param group Number of your group.
 #'
 #' @returns
@@ -18,7 +18,7 @@ rse_manual <- function(file, group, get_grade){
   if(missing("get_grade")) get_grade = F
   fl_name <- strsplit(file, "/")[[1]]
   fl_name <- fl_name[length(fl_name)]
-  if(fl_name != "rst_manual.csv") return(cat0("ERROR: your file must be named 'rst_manual.csv'"))
+  if(fl_name != "rst_result.csv") return(cat0("ERROR: your file must be named 'rst_result.csv'"))
   rm(fl_name)
 
   sep_times <- wake_turbulence$WT_TOY
@@ -92,10 +92,10 @@ rse_manual <- function(file, group, get_grade){
 #' @description
 #' Self-evaluator for Activity 2 - RS Heuristic of Airport operations.
 #'
-#' @param file File name in working directory or path to file. File ('.txt') following the exact format from Atenea.
+#' @param file File name in working directory or path to file. File ('rs_heur.txt') following the exact format from Atenea.
 #' @param toys_to_test A vector with toy numbers to check your heuristic against. Database has 10 toy models and by default it runs all of them.
-#' @param recat_csv File name in working directory or path to file. File ('.csv') following the exact format from Atenea. Result of your heuristic using RECAT wake turbulence on your group's schedule.
-#' @param icao_csv File name in working directory or path to file. File ('.csv') following the exact format from Atenea. Result of your heuristic using ICAO wake turbulence on your group's schedule.
+#' @param recat_csv File name in working directory or path to file. File ('rs_recat.csv') following the exact format from Atenea. Result of your heuristic using RECAT wake turbulence on your group's schedule.
+#' @param icao_csv File name in working directory or path to file. File ('rs_icao.csv') following the exact format from Atenea. Result of your heuristic using ICAO wake turbulence on your group's schedule.
 #' @param group Number of your group.
 #'
 #' @returns
@@ -111,7 +111,10 @@ rse_manual <- function(file, group, get_grade){
 #' rse_heur(file = "rs_heur.txt", toys_to_test = 1:2, recat_csv = "rs_recat.csv", icao_csv = "rs_icao.csv", group = 1)
 rse_heur <- function(file, toys_to_test = 1:10, recat_csv, icao_csv, group, get_grade){
   if(missing("file")) return(cat0("ERROR: you must provide your file"))
-  if(!regexpr("\\.txt$", file)>0) return(cat0("ERROR: file must be a plain TXT"))
+  if(!missing("file")){
+    if(!regexpr("\\.txt$", file)>0) return(cat0("ERROR: file must be a plain TXT"))
+    if(length(readLines(file)) == 0) return(cat0("ERROR: file is empty"))
+  }
   if(!missing("recat_csv")) {
     if(!is.na(recat_csv)) {
       if(!regexpr("\\.csv$", recat_csv)>0) return(cat0("ERROR: recat_csv must be a CSV"))
@@ -138,6 +141,9 @@ rse_heur <- function(file, toys_to_test = 1:10, recat_csv, icao_csv, group, get_
   el_fold <- getwd()
   if((!missing("recat_csv") | !missing("icao_csv")) & missing("group")) return(cat0("ERROR: you must provide your group"))
   n_toys <- unique(round(toys_to_test[toys_to_test > 0 & toys_to_test < 11]))
+  if(length(n_toys) == 0) return(cat0("ERROR: toys_to_test must have values between 1 to 10"))
+  if(sum(is.na(n_toys))) return(cat0("ERROR: toys_to_test must have values between 1 to 10"))
+
   file.copy(from = file, to = paste0(tempdir(), "/la_heur.txt"), overwrite = T)
 
   setwd(tempdir())

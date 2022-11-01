@@ -4,14 +4,14 @@
 \alias{sae_heur1}
 \title{Stand Allocation Heuristic (part 1) Evaluation}
 \usage{
-sae_heur1(file, sch_to_test = 1:10, st_fill)
+sae_heur1(file, sch_to_test = 1:10, st_fill, get_grade)
 }
 \arguments{
-\item{file}{File name in working directory or path to file. File ('.txt') following the exact format from Atenea.}
+\item{file}{File name in working directory or path to file. File ('stand_util.txt') following the exact format from Atenea.}
 
 \item{sch_to_test}{A vector with schedule numbers to check your heuristic against. Database has schedules and by default it runs all of them.}
 
-\item{st_fill}{File name in working directory or path to file. File ('.csv') following the exact format from Atenea. Stand priorities filled.}
+\item{st_fill}{File name in working directory or path to file. File ('lebl_stands.csv') following the exact format from Atenea. Stand priorities filled.}
 
 \item{group}{Number of your group.}
 }
@@ -23,7 +23,12 @@ Self-evaluator for Activity 4 - SA Heuristic (part 1) of Airport operations.
 }
 \details{
 Maximum execution time of your code is 30 sec.
+
+Input \emph{st_fill} can be evaluated independently from \emph{file}.
+.
 }
 \examples{
 sae_heur1(file = "stand_util.txt", sch_to_test = 1:2, st_fill = "lebl_stands.csv")
+sae_heur1(file = "stand_util.txt", sch_to_test = 1:3)
+sae_heur1(st_fill = "lebl_stands.csv")
 }

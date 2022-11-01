@@ -4,10 +4,10 @@
 \alias{rse_manual}
 \title{Runway Sequencing Manual Evaluation}
 \usage{
-rse_manual(file, group)
+rse_manual(file, group, get_grade)
 }
 \arguments{
-\item{file}{File name in working directory or path to file. File ('.csv') following the exact format from Atenea.}
+\item{file}{File name in working directory or path to file. File ('rst_result.csv') following the exact format from Atenea.}
 
 \item{group}{Number of your group.}
 }

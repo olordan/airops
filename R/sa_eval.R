@@ -288,7 +288,7 @@ grade_mahe <- function(utr1, satype, gr){
 #' @description
 #' Self-evaluator for Activity 3 - SA Manual of Airport operations.
 #'
-#' @param file File name in working directory or path to file. File ('.csv') following the exact format from Atenea.
+#' @param file File name in working directory or path to file. File ('sa_result.csv') following the exact format from Atenea.
 #' @param group Number of your group.
 #'
 #' @returns
@@ -303,7 +303,7 @@ sae_manual <- function(file, group, get_grade){
   if(missing("get_grade")) get_grade = F
   fl_name <- strsplit(file, "/")[[1]]
   fl_name <- fl_name[length(fl_name)]
-  if(fl_name != "sa_manual.csv") return(cat0("ERROR: your file must be named 'sa_manual.csv'"))
+  if(fl_name != "sa_result.csv") return(cat0("ERROR: your file must be named 'sa_result.csv'"))
   rm(fl_name)
 
   return(sa_perun(sol = file, gr = group, satype = "manual", get_grade))
@@ -320,9 +320,9 @@ stand_util <- function(schedule, stand_info){
 #' @description
 #' Self-evaluator for Activity 4 - SA Heuristic (part 2) of Airport operations.
 #'
-#' @param file File name in working directory or path to file. File ('.txt') following the exact format from Atenea.
+#' @param file File name in working directory or path to file. File ('sa_heur.txt') following the exact format from Atenea.
 #' @param sch_to_test A vector with schedule numbers to check your heuristic against. Database has schedules and by default it runs all of them.
-#' @param sa_csv File name in working directory or path to file. File ('.csv') following the exact format from Atenea. Result of your heuristic on your group's schedule.
+#' @param sa_csv File name in working directory or path to file. File ('sa_heur.csv') following the exact format from Atenea. Result of your heuristic on your group's schedule.
 #' @param group Number of your group.
 #'
 #' @returns
@@ -338,7 +338,10 @@ stand_util <- function(schedule, stand_info){
 #' sae_heur2(file = "sa_heur.txt", sch_to_test = 1:2, sa_csv = "sa_heur.csv", group = 1)
 sae_heur2 <- function(file, sch_to_test = 1:10, sa_csv, group, get_grade){
   if(missing("file")) return(cat0("ERROR: you must provide your file"))
-  if(!regexpr("\\.txt$", file)>0) return(cat0("ERROR: file must be a plain TXT"))
+  if(!missing("file")){
+    if(!regexpr("\\.txt$", file)>0) return(cat0("ERROR: file must be a plain TXT"))
+    if(length(readLines(file)) == 0) return(cat0("ERROR: file is empty"))
+  }
   if(!missing("sa_csv")) {
     if(!is.na(sa_csv)) {
       if(!regexpr("\\.csv$", sa_csv)>0) return(cat0("ERROR: sa_csv must be a CSV"))
@@ -357,6 +360,8 @@ sae_heur2 <- function(file, sch_to_test = 1:10, sa_csv, group, get_grade){
   el_fold <- getwd()
   if(!missing("sa_csv") & missing("group")) return(cat0("ERROR: you must provide your group"))
   n_sch <- unique(round(sch_to_test[sch_to_test > 0 & sch_to_test < 11]))
+  if(length(n_sch) == 0) return(cat0("ERROR: sch_to_test must have values between 1 to 10"))
+  if(sum(is.na(n_sch))) return(cat0("ERROR: sch_to_test must have values between 1 to 10"))
 
   file.copy(from = file, to = paste0(tempdir(), "/la_heur.txt"), overwrite = T)
   setwd(tempdir())
@@ -482,9 +487,9 @@ sae_heur2 <- function(file, sch_to_test = 1:10, sa_csv, group, get_grade){
 #' @description
 #' Self-evaluator for Activity 4 - SA Heuristic (part 1) of Airport operations.
 #'
-#' @param file File name in working directory or path to file. File ('.txt') following the exact format from Atenea.
+#' @param file File name in working directory or path to file. File ('stand_util.txt') following the exact format from Atenea.
 #' @param sch_to_test A vector with schedule numbers to check your heuristic against. Database has schedules and by default it runs all of them.
-#' @param st_fill File name in working directory or path to file. File ('.csv') following the exact format from Atenea. Stand priorities filled.
+#' @param st_fill File name in working directory or path to file. File ('lebl_stands.csv') following the exact format from Atenea. Stand priorities filled.
 #' @param group Number of your group.
 #'
 #' @returns
@@ -493,11 +498,18 @@ sae_heur2 <- function(file, sch_to_test = 1:10, sa_csv, group, get_grade){
 #' @details
 #' Maximum execution time of your code is 30 sec.
 #'
+#' Input *st_fill* can be evaluated independently from *file*.
+#' .
 #' @examples
 #' sae_heur1(file = "stand_util.txt", sch_to_test = 1:2, st_fill = "lebl_stands.csv")
+#' sae_heur1(file = "stand_util.txt", sch_to_test = 1:3)
+#' sae_heur1(st_fill = "lebl_stands.csv")
 sae_heur1 <- function(file, sch_to_test = 1:10, st_fill, get_grade){
-  if(missing("file")) return(cat0("ERROR: you must provide your file"))
-  if(!regexpr("\\.txt$", file)>0) return(cat0("ERROR: file must be a plain TXT"))
+  if(missing("file") & missing("st_fill")) return(cat0("ERROR: you must provide your file or st_fill"))
+  if(!missing("file")){
+    if(!regexpr("\\.txt$", file)>0) return(cat0("ERROR: file must be a plain TXT"))
+    if(length(readLines(file)) == 0) return(cat0("ERROR: file is empty"))
+  }
   if(!missing("st_fill")) {
     if(!is.na(st_fill)) {
       if(!regexpr("\\.csv$", st_fill)>0) return(cat0("ERROR: st_fill must be a CSV"))
@@ -600,156 +612,163 @@ sae_heur1 <- function(file, sch_to_test = 1:10, st_fill, get_grade){
   pena_fill <- round(pena_fill/10, 2)
   rm(stands_clean2)
 
-  n_sch <- unique(round(sch_to_test[sch_to_test > 0 & sch_to_test < 11]))
+  notaf = 0
+  if(!missing("file")){
+    n_sch <- unique(round(sch_to_test[sch_to_test > 0 & sch_to_test < 11]))
+    if(length(n_sch) == 0) return(cat0("ERROR: sch_to_test must have values between 1 to 10"))
+    if(sum(is.na(n_sch))) return(cat0("ERROR: sch_to_test must have values between 1 to 10"))
 
-  file.copy(from = file, to = paste0(tempdir(), "/la_heur.txt"), overwrite = T)
-  setwd(tempdir())
+    file.copy(from = file, to = paste0(tempdir(), "/la_heur.txt"), overwrite = T)
+    setwd(tempdir())
 
-  if(!check_functions("la_heur.txt", loops_max$sa_heur1)) {
-    setwd(el_fold)
-    return(cat())
-  }
-  #test the code ----
+    if(!check_functions("la_heur.txt", loops_max$sa_heur1)) {
+      setwd(el_fold)
+      return(cat())
+    }
+    #test the code ----
 
-  if(!codi_ok("la_heur.txt")) {
-    setwd(el_fold)
-    return(cat())
-  }
-
-  source("la_heur.txt")
-
-  suppressWarnings(dir.create("schedules"))
-  suppressWarnings(dir.create("data"))
-
-  for(i in seq(length(schedules))) fwrite(schedules[[i]], file = paste0("schedules/", names(schedules)[i],".csv"))
-  for(i in seq(length(extra_sa))) fwrite(extra_sa[[i]], file = paste0("data/", names(extra_sa)[i],".csv"))
-  fwrite(stands_clean, "stands_info.csv")
-
-  cat0("## Heuristic evaluation")
-  notaf <- c()
-  for(el_j in sch_to_test){
-    cat0("# File: ", eval_files$sa_heur$File[el_j])
-    nota = 10
-    err1_d = NULL
-    err2_d = NULL
-    err1 = NULL
-    err2 = NULL
-    res <- myTryCatch(.GlobalEnv$stand_util(schedule = list.files("schedules/")[el_j], stand_info = "stands_info.csv"), nmb = 2)
-    cat0(res$tspent)
-
-    if(!is.null(res$warning)) {
-      cat("WARNING: ")
-      cat0(as.character(res$warning))
+    if(!codi_ok("la_heur.txt")) {
+      setwd(el_fold)
+      return(cat())
     }
 
-    if(!is.null(res$error)) {
-      cat0("ERROR: Code doesn't run")
-      cat0(as.character(res$error))
-      notaf <- c(notaf, 0)
-      next
-    }
-    res <- res$value
-    cat0("Your file:")
-    print(res)
+    source("la_heur.txt")
 
-    colmeu <- data.table(la_col = c("callsign","id","op","tail","ramp","stand","op_time1","op_time2","time1","time2","util"),
-                         la_class = c("character", "integer", rep("character", 4), rep("ITime",4), "numeric"), id = 1:11,
-                         pena = c(rep(10,2), rep(1, 3), 3, rep(1,4), 2))
-    colseu <- sapply(res, class)
-    colseu <- data.table(la_col = names(colseu), la_class2 = colseu)
+    suppressWarnings(dir.create("schedules"))
+    suppressWarnings(dir.create("data"))
 
-    colck <- merge(colmeu, colseu, all = T, sort = F)
-    e1 <- colck[is.na(la_class2)]
-    e2 <- colck[is.na(la_class)]
-    e3 <- colck[!is.na(la_class) & !is.na(la_class2)]
-    e3 <- e3[la_class != la_class2]
+    for(i in seq(length(schedules))) fwrite(schedules[[i]], file = paste0("schedules/", names(schedules)[i],".csv"))
+    for(i in seq(length(extra_sa))) fwrite(extra_sa[[i]], file = paste0("data/", names(extra_sa)[i],".csv"))
+    fwrite(stands_clean, "stands_info.csv")
 
-    if(e1[,.N] > 0) {
-      xres <- e1[, cat0(la_col, " column missing: -", pena, " p"), by = id]
-      nota = nota - e1[, pena]
-    }
-    if(e2[,.N] > 0) {
-      xres <- e2[, cat0(la_col, " column not wanted: -1 p"), by = id]
-      nota = nota - e2[,.N]
-    }
-    if(e3[,.N] > 0){
-      xres <- e3[, cat0(la_col, " class is not ", la_class, ": -0.25 p"), by = id]
-      nota = nota - e3[,.N]*0.25
-      cat("*Forcing class correction: ")
-      fixclass <- myTryCatch({fixclass <- e3[,paste0("res[, ", la_col, " := as.",la_class,"(",la_col,")]")]
-      fixclass <- lapply(fixclass, function(x) eval(parse(text = x)))}, nmb = 2)
+    cat0("## Heuristic evaluation")
+    notaf <- c()
+    for(el_j in sch_to_test){
+      cat0("# File: ", eval_files$sa_heur$File[el_j])
+      nota = 10
+      err1_d = NULL
+      err2_d = NULL
+      err1 = NULL
+      err2 = NULL
+      res <- myTryCatch(.GlobalEnv$stand_util(schedule = list.files("schedules/")[el_j], stand_info = "stands_info.csv"), nmb = 2)
+      cat0(res$tspent)
 
-      if(!is.null(fixclass$warning)) {
-        cat0("Didn't work")
+      if(!is.null(res$warning)) {
         cat("WARNING: ")
-        cat0(as.character(fixclass$warning))
+        cat0(as.character(res$warning))
+      }
+
+      if(!is.null(res$error)) {
+        cat0("ERROR: Code doesn't run")
+        cat0(as.character(res$error))
         notaf <- c(notaf, 0)
         next
       }
+      res <- res$value
+      cat0("Your file:")
+      print(res)
 
-      if(!is.null(fixclass$error)) {
-        cat0("Didn't work")
-        cat("ERROR: ")
-        cat0(as.character(fixclass$error))
-        notaf <- c(notaf, 0)
-        next
+      colmeu <- data.table(la_col = c("callsign","id","op","tail","ramp","stand","op_time1","op_time2","time1","time2","util"),
+                           la_class = c("character", "integer", rep("character", 4), rep("ITime",4), "numeric"), id = 1:11,
+                           pena = c(rep(10,2), rep(1, 3), 3, rep(1,4), 2))
+      colseu <- sapply(res, class)
+      colseu <- data.table(la_col = names(colseu), la_class2 = colseu)
+
+      colck <- merge(colmeu, colseu, all = T, sort = F)
+      e1 <- colck[is.na(la_class2)]
+      e2 <- colck[is.na(la_class)]
+      e3 <- colck[!is.na(la_class) & !is.na(la_class2)]
+      e3 <- e3[la_class != la_class2]
+
+      if(e1[,.N] > 0) {
+        xres <- e1[, cat0(la_col, " column missing: -", pena, " p"), by = id]
+        nota = nota - e1[, pena]
       }
-      if(is.null(fixclass$error) & is.null(fixclass$warning)) cat0("Worked")
-    }
+      if(e2[,.N] > 0) {
+        xres <- e2[, cat0(la_col, " column not wanted: -1 p"), by = id]
+        nota = nota - e2[,.N]
+      }
+      if(e3[,.N] > 0){
+        xres <- e3[, cat0(la_col, " class is not ", la_class, ": -0.25 p"), by = id]
+        nota = nota - e3[,.N]*0.25
+        cat("*Forcing class correction: ")
+        fixclass <- myTryCatch({fixclass <- e3[,paste0("res[, ", la_col, " := as.",la_class,"(",la_col,")]")]
+        fixclass <- lapply(fixclass, function(x) eval(parse(text = x)))}, nmb = 2)
 
-    elmeu <- copy(utils_sa[[el_j]])
-    elmeu[, poss := NULL]
-    setnames(res, "id", "id2")
+        if(!is.null(fixclass$warning)) {
+          cat0("Didn't work")
+          cat("WARNING: ")
+          cat0(as.character(fixclass$warning))
+          notaf <- c(notaf, 0)
+          next
+        }
 
-    if("util" %in% colseu$la_col) setnames(res, "util", "util2")
+        if(!is.null(fixclass$error)) {
+          cat0("Didn't work")
+          cat("ERROR: ")
+          cat0(as.character(fixclass$error))
+          notaf <- c(notaf, 0)
+          next
+        }
+        if(is.null(fixclass$error) & is.null(fixclass$warning)) cat0("Worked")
+      }
 
-    les_col <- c("callsign","op","tail","ramp",
-                 "stand","op_time1","op_time2","time1","time2")
-    meuseu <- merge(elmeu, res, by = les_col[les_col %in% names(res)],
-                    all = T, allow.cartesian = T)
+      elmeu <- copy(utils_sa[[el_j]])
+      elmeu[, poss := NULL]
+      setnames(res, "id", "id2")
 
-    if("util" %in% colseu$la_col){
-      meuseu[, udif := abs(util - util2)]
-      err2_d <- meuseu[udif > 0.1]
-      meuseu[, udif := NULL]
-      suppressWarnings(err2_d[, udif := NULL])
-      err2 <- err2_d[, unique(callsign)]
-    }
+      if("util" %in% colseu$la_col) setnames(res, "util", "util2")
 
-    err1_d <- meuseu[is.na(id2) | is.na(id)]
-    err1 <- err1_d[, unique(callsign)]
-    rowerr <- nrow(unique(rbind(err1_d, err2_d)))/nrow(meuseu)*100
-    cat0()
+      les_col <- c("callsign","op","tail","ramp",
+                   "stand","op_time1","op_time2","time1","time2")
+      meuseu <- merge(elmeu, res, by = les_col[les_col %in% names(res)],
+                      all = T, allow.cartesian = T)
 
-    if(length(err1) > 0) {
-      cat0(length(err1), " callsigns with wrong information (e.g. time1, ramp, ...)")
+      if("util" %in% colseu$la_col){
+        meuseu[, udif := abs(util - util2)]
+        err2_d <- meuseu[udif > 0.1]
+        meuseu[, udif := NULL]
+        suppressWarnings(err2_d[, udif := NULL])
+        err2 <- err2_d[, unique(callsign)]
+      }
+
+      err1_d <- meuseu[is.na(id2) | is.na(id)]
+      err1 <- err1_d[, unique(callsign)]
+      rowerr <- nrow(unique(rbind(err1_d, err2_d)))/nrow(meuseu)*100
       cat0()
-      print(err1_d, nrows = 10)
-    }
-    if(length(err2) > 0) {
-      cat0(length(err2), " callsigns with wrong util (< or > 0.1 from expected)")
-      cat0()
-      print(err2_d, nrows = 10)
-    }
-    if(length(unique(c(err1, err2))) > 0) cat0(round(rowerr, 1), "% of incorrect rows: -", round(rowerr/10, 2), " p")
 
-    nota <- nota - round(rowerr/10, 2)
-    nota <-  max(nota, 0)
-    cat0("Grade: ", nota)
-    notaf <- c(notaf, nota)
-    cat0()
+      if(length(err1) > 0) {
+        cat0(length(err1), " callsigns with wrong information (e.g. time1, ramp, ...)")
+        cat0("id and util: right solution -- id2 and util2: your solution")
+        cat0()
+        print(err1_d, nrows = 10)
+      }
+      if(length(err2) > 0) {
+        cat0(length(err2), " callsigns with wrong util (< or > 0.1 from expected)")
+        cat0("id and util: right solution -- id2 and util2: your solution")
+        cat0()
+        print(err2_d, nrows = 10)
+      }
+      if(length(unique(c(err1, err2))) > 0) cat0(round(rowerr, 1), "% of incorrect rows: -", round(rowerr/10, 2), " p")
+
+      nota <- nota - round(rowerr/10, 2)
+      nota <-  max(nota, 0)
+      cat0("Grade: ", nota)
+      notaf <- c(notaf, nota)
+      cat0()
+    }
+
+    unlink("schedules/", recursive = T)
+    unlink("data/", recursive = T)
+    unlink("stands_info.csv")
+    unlink("la_heur.txt")
+    rm(stand_util, envir = .GlobalEnv)
+    setwd(el_fold)
+
+    cat0("Heuristic grade (expected): ", round(mean(notaf), 2))
   }
 
-  unlink("schedules/", recursive = T)
-  unlink("data/", recursive = T)
-  unlink("stands_info.csv")
-  unlink("la_heur.txt")
-  rm(stand_util, envir = .GlobalEnv)
-  setwd(el_fold)
-
-  cat0("Heuristic grade (expected): ", round(mean(notaf), 2))
-
-  if(!missing(st_fill)) cat0("\nFinal grade (expected): ", round(mean(notaf), 2) + pena_fill)
-  if(get_grade) return(round(mean(notaf),2) + pena_fill)
+  if(!missing(file) & !missing(st_fill)) cat0("\nFinal grade (expected): ", round(mean(notaf), 2) + pena_fill)
+  if(get_grade) return(round(mean(notaf), 2) + pena_fill)
   return(cat())
 }
