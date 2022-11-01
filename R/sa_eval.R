@@ -342,10 +342,8 @@ stand_util <- function(schedule, stand_info){
 #' sae_heur2(file = "sa_heur.txt", sch_to_test = 1:2, sa_csv = "sa_heur.csv", group = 1)
 sae_heur2 <- function(file, sch_to_test = 1:10, sa_csv, group, get_grade){
   if(missing("file")) return(cat0("ERROR: you must provide your file"))
-  if(!missing("file")){
-    if(!regexpr("\\.txt$", file)>0) return(cat0("ERROR: file must be a plain TXT"))
-    if(length(readLines(file)) == 0) return(cat0("ERROR: file is empty"))
-  }
+  if(!regexpr("\\.txt$", file)>0) return(cat0("ERROR: file must be a plain TXT"))
+  if(length(readLines(file)) == 0) return(cat0("ERROR: file is empty"))
   if(!missing("sa_csv")) {
     if(!is.na(sa_csv)) {
       if(!regexpr("\\.csv$", sa_csv)>0) return(cat0("ERROR: sa_csv must be a CSV"))
@@ -513,6 +511,10 @@ sae_heur1 <- function(file, sch_to_test = 1:10, st_fill, get_grade){
   if(!missing("file")){
     if(!regexpr("\\.txt$", file)>0) return(cat0("ERROR: file must be a plain TXT"))
     if(length(readLines(file)) == 0) return(cat0("ERROR: file is empty"))
+    fl_name <- strsplit(file, "/")[[1]]
+    fl_name <- fl_name[length(fl_name)]
+    if(fl_name != "stand_util.txt") return(cat0("ERROR: your heuristic file must be named 'stand_util.txt'"))
+    rm(fl_name)
   }
   if(!missing("st_fill")) {
     if(!is.na(st_fill)) {
@@ -522,10 +524,7 @@ sae_heur1 <- function(file, sch_to_test = 1:10, st_fill, get_grade){
       if(fl_name != "lebl_stands.csv") return(cat0("ERROR: your LEBL stands file must be named 'lebl_stands.csv'"))
     }
   }
-  fl_name <- strsplit(file, "/")[[1]]
-  fl_name <- fl_name[length(fl_name)]
-  if(fl_name != "stand_util.txt") return(cat0("ERROR: your heuristic file must be named 'stand_util.txt'"))
-  rm(fl_name)
+  if(missing("get_grade")) get_grade = F
 
   el_fold <- getwd()
 
@@ -610,6 +609,7 @@ sae_heur1 <- function(file, sch_to_test = 1:10, st_fill, get_grade){
       }
       pena_fill = -min(10, pena_fill)
       if(pena_fill < 0) cat0("\nPenalty for Stand preferences: ", pena_fill, "/10 = ", round(pena_fill/10, 2), " p")
+      if(pena_fill == 0) cat0("Your LEBL stands file is correct: -0 p")
       cat0()
     }
   }

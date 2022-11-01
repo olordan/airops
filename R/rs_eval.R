@@ -111,10 +111,8 @@ rse_manual <- function(file, group, get_grade){
 #' rse_heur(file = "rs_heur.txt", toys_to_test = 1:2, recat_csv = "rs_recat.csv", icao_csv = "rs_icao.csv", group = 1)
 rse_heur <- function(file, toys_to_test = 1:10, recat_csv, icao_csv, group, get_grade){
   if(missing("file")) return(cat0("ERROR: you must provide your file"))
-  if(!missing("file")){
-    if(!regexpr("\\.txt$", file)>0) return(cat0("ERROR: file must be a plain TXT"))
-    if(length(readLines(file)) == 0) return(cat0("ERROR: file is empty"))
-  }
+  if(!regexpr("\\.txt$", file)>0) return(cat0("ERROR: file must be a plain TXT"))
+  if(length(readLines(file)) == 0) return(cat0("ERROR: file is empty"))
   if(!missing("recat_csv")) {
     if(!is.na(recat_csv)) {
       if(!regexpr("\\.csv$", recat_csv)>0) return(cat0("ERROR: recat_csv must be a CSV"))
@@ -132,7 +130,6 @@ rse_heur <- function(file, toys_to_test = 1:10, recat_csv, icao_csv, group, get_
     }
   }
   if(missing("get_grade")) get_grade = F
-
   fl_name <- strsplit(file, "/")[[1]]
   fl_name <- fl_name[length(fl_name)]
   if(fl_name != "rs_heur.txt") return(cat0("ERROR: your heuristic file must be named 'rs_heur.txt'"))
