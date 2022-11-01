@@ -92,11 +92,14 @@ get_eval <- function(sol, gr) {
   if(!identical(names(solucio), c("callsign", "op", "stand"))) return(cat0("ERROR: Columns are not in the right order"))
 
   if(sum(!(solucio$op %in% c("A","D","P")))>0) return(cat0("ERROR: op is not correct"))
-  if(sum(duplicated(solucio, by = "callsign"))) return(cat0("ERROR: Returning duplicated callsigns"))
 
   solucio <- solucio[, .(callsign, stand)]
   solucio <- unique(solucio)
   solucio[, stand := toupper(stand)]
+  if(sum(duplicated(solucio, by = "callsign"))) {
+    cat0("WARNING: Returning duplicated callsigns and considering just the first elements")
+    solucio <- unique(solucio, by = "callsign")
+  }
 
   stand_utility <- copy(utils_sa[[gr]])
   pel_toy <- unique(stand_utility[time1 >= as.ITime("10:00") & time1 <= as.ITime("15:00") & ramp == "R2", id]) # pel toy
