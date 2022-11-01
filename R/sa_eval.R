@@ -97,7 +97,7 @@ get_eval <- function(sol, gr) {
   solucio <- unique(solucio)
   solucio[, stand := toupper(stand)]
   if(sum(duplicated(solucio, by = "callsign"))) {
-    cat0("WARNING: Returning duplicated callsigns and considering just the first elements")
+    cat0("WARNING: Returning duplicated callsigns, considering just the first elements")
     solucio <- unique(solucio, by = "callsign")
   }
 
