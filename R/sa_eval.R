@@ -350,6 +350,7 @@ sae_heur2 <- function(file, sch_to_test = 1:10, sa_csv, group, get_grade){
       fl_name <- strsplit(sa_csv, "/")[[1]]
       fl_name <- fl_name[length(fl_name)]
       if(fl_name != "sa_heur.csv") return(cat0("ERROR: your results file must be named 'sa_heur.csv'"))
+      file.copy(from = sa_csv, to = paste0(tempdir(), "/sa_heur.csv"), overwrite = T)
     }
   }
   if(missing("get_grade")) get_grade = F
@@ -389,7 +390,7 @@ sae_heur2 <- function(file, sch_to_test = 1:10, sa_csv, group, get_grade){
       for(inu in 1){
         estabe = 0
         cat0("## SA csv evaluation")
-        loseu <- fread(sa_csv, header = T)
+        loseu <- fread("sa_heur.csv", header = T)
         cat0("Your file:")
         print(loseu)
         cat0()
