@@ -4,19 +4,22 @@
 \alias{sae_manual}
 \title{Stand Allocation Manual Evaluation}
 \usage{
-sae_manual(file, group, get_grade)
+sae_manual(file, group, sa_type = c("manual", "heur"), get_grade)
 }
 \arguments{
-\item{file}{File name in working directory or path to file. File ('sa_result.csv') following the exact format from Atenea.}
+\item{file}{File name in working directory or path to file. File ('sa_result.csv') following the exact format from Atenea. You can also review the heuristic's result ('sa_heur.csv').}
 
 \item{group}{Number of your group.}
+
+\item{sa_type}{default is "manual". Select "heur" when reviewing the heuristic's result.}
 }
 \value{
 Report with information about your result.
 }
 \description{
-Self-evaluator for Activity 3 - SA Manual of Airport operations.
+Self-evaluator for Activity 3 - SA Manual of Airport operations. It can also be used to review (not evaluate) your heuristic's result from Activity 4 - SA Heuristic (part 2).
 }
 \examples{
-sae_manual(file = "sa_result.csv", group = 1)
+sae_manual(file = "sa_result.csv", group = 1) # Manual evaluation
+sae_manual(file = "sa_heur.csv", group = 1, sa_type = "heur") # Heuristic review
 }

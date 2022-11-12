@@ -24,9 +24,11 @@ Self-evaluator for Activity 4 - SA Heuristic (part 2) of Airport operations.
 \details{
 Maximum execution time of your code is 10 min.
 
+With a single schedule to test in \emph{sch_to_test} the functions shows a report and plots your solution. For a correct visualization it is recommended to 'Export as Image...' the plot with a 1000x3000 ratio.
 Input \emph{sa_csv} and \emph{group} are optional just for checking your schedule results. \emph{group} is mandatory when having a \emph{sa_csv} input.
 }
 \examples{
+sae_heur2(file = "sa_heur.txt", sch_to_test = 1) # with a single schedule to test it shows report and plot
 sae_heur2(file = "sa_heur.txt", sch_to_test = c(1, 3))
 sae_heur2(file = "sa_heur.txt", sch_to_test = 1:2, sa_csv = "sa_heur.csv", group = 1)
 }

@@ -264,8 +264,9 @@ sa_perun <- function(sol, gr, satype = c("manual", "heur"), get_grade){
     if(res$err4>0) cat0("Dark: overlapped operations")
     cat0("Yellow (background): remote stands")
     cat0()
-    if(satype == "manual") print(PlottingSolution_ggplot(res$stands_plot, res$loseu))
-    if(satype == "heur") print(PlottingSolution_ggplot(res$stands_plot, res$loseu))
+    print(PlottingSolution_ggplot(res$stands_plot, res$loseu))
+    # if(satype == "manual") print(PlottingSolution_ggplot(res$stands_plot, res$loseu))
+    # if(satype == "heur")   print(PlottingSolution_ggplot(res$stands_plot, res$loseu))
   }
 
   n_mahe <- round(grade_mahe(res$r1, satype, gr), 2)
@@ -277,7 +278,7 @@ sa_perun <- function(sol, gr, satype = c("manual", "heur"), get_grade){
 
 grade_mahe <- function(utr1, satype, gr){
   if(satype == "manual") el_eval <- eval_files$sa_manual[gr]
-  if(satype == "heur") el_eval <- eval_files$sa_heur[gr]
+  if(satype == "heur")   el_eval <- eval_files$sa_heur[gr]
   el_eval[, ut := utr1]
   el_eval[, nota := 0]
   el_eval[ut >= Great, nota := 10]
@@ -290,31 +291,40 @@ grade_mahe <- function(utr1, satype, gr){
 #' Stand Allocation Manual Evaluation
 #'
 #' @description
-#' Self-evaluator for Activity 3 - SA Manual of Airport operations.
+#' Self-evaluator for Activity 3 - SA Manual of Airport operations. It can also be used to review (not evaluate) your heuristic's result from Activity 4 - SA Heuristic (part 2).
 #'
-#' @param file File name in working directory or path to file. File ('sa_result.csv') following the exact format from Atenea.
+#' @param file File name in working directory or path to file. File ('sa_result.csv') following the exact format from Atenea. You can also review the heuristic's result ('sa_heur.csv').
 #' @param group Number of your group.
+#' @param sa_type default is "manual". Select "heur" when reviewing the heuristic's result.
 #'
 #' @returns
 #' Report with information about your result.
 #'
 #' @examples
-#' sae_manual(file = "sa_result.csv", group = 1)
-sae_manual <- function(file, group, get_grade){
+#' sae_manual(file = "sa_result.csv", group = 1) # Manual evaluation
+#' sae_manual(file = "sa_heur.csv", group = 1, sa_type = "heur") # Heuristic review
+sae_manual <- function(file, group, sa_type = c("manual", "heur"), get_grade){
   if(missing("file")) return(cat0("ERROR: you must provide your file"))
   if(missing("group")) return(cat0("ERROR: you must provide your group"))
   if(!regexpr("\\.csv$", file)>0) return(cat0("ERROR: file must be a CSV"))
   if(missing("get_grade")) get_grade = F
   fl_name <- strsplit(file, "/")[[1]]
   fl_name <- fl_name[length(fl_name)]
+  if(!sa_type[1] %in% c("manual", "heur")) return(cat0("ERROR: sa_type can only be either 'manual' or 'heur'"))
+  if(sa_type[1] == "heur"){
+    if(fl_name != "sa_heur.csv") return(cat0("ERROR: your file must be named 'sa_heur.csv'"))
+  } else {
   if(fl_name != "sa_result.csv") return(cat0("ERROR: your file must be named 'sa_result.csv'"))
+  }
   rm(fl_name)
 
-  return(sa_perun(sol = file, gr = group, satype = "manual", get_grade))
+  return(sa_perun(sol = file, gr = group, satype = sa_type[1], get_grade))
 }
 
 stand_util <- function(schedule, stand_info){
-  utsa <- copy(utils_sa[[schedule]])
+  utsa <- copy(utils_sa[[as.integer(substr(schedule,
+                                                    nchar(schedule) - 5,
+                                                    nchar(schedule) - 4))]])
   utsa[, poss := NULL]
   return(utsa)
 }
@@ -335,9 +345,11 @@ stand_util <- function(schedule, stand_info){
 #' @details
 #' Maximum execution time of your code is 10 min.
 #'
+#' With a single schedule to test in *sch_to_test* the functions shows a report and plots your solution. For a correct visualization it is recommended to 'Export as Image...' the plot with a 1000x3000 ratio.
 #' Input *sa_csv* and *group* are optional just for checking your schedule results. *group* is mandatory when having a *sa_csv* input.
 #'
 #' @examples
+#' sae_heur2(file = "sa_heur.txt", sch_to_test = 1) # with a single schedule to test it shows report and plot
 #' sae_heur2(file = "sa_heur.txt", sch_to_test = c(1, 3))
 #' sae_heur2(file = "sa_heur.txt", sch_to_test = 1:2, sa_csv = "sa_heur.csv", group = 1)
 sae_heur2 <- function(file, sch_to_test = 1:10, sa_csv, group, get_grade){
@@ -359,34 +371,50 @@ sae_heur2 <- function(file, sch_to_test = 1:10, sa_csv, group, get_grade){
   if(fl_name != "sa_heur.txt") return(cat0("ERROR: your heuristic file must be named 'sa_heur.txt'"))
   rm(fl_name)
 
-  suppressWarnings(rm("stand_util"))
+  # suppressWarnings(rm("stand_util"))
+  suppressWarnings(rm(stand_util, envir = .GlobalEnv))
+
   el_fold <- getwd()
+
   if(!missing("sa_csv") & missing("group")) return(cat0("ERROR: you must provide your group"))
+
   n_sch <- unique(round(sch_to_test[sch_to_test > 0 & sch_to_test < 11]))
   if(length(n_sch) == 0) return(cat0("ERROR: sch_to_test must have values between 1 to 10"))
   if(sum(is.na(n_sch))) return(cat0("ERROR: sch_to_test must have values between 1 to 10"))
 
   file.copy(from = file, to = paste0(tempdir(), "/la_heur.txt"), overwrite = T)
+
   setwd(tempdir())
+  on.exit({
+    unlink("schedules/", recursive = T)
+    unlink("stands_info.csv")
+    unlink("la_heur.txt")
+    unlink("el_res.csv")
+    suppressWarnings(rm(sa_heur, stand_util, envir = .GlobalEnv))
+    setwd(el_fold)
+  })
 
   if(!check_functions("la_heur.txt", loops_max$sa_heur2)) {
-    setwd(el_fold)
     return(cat())
   }
   #test the code ----
 
   if(!codi_ok("la_heur.txt")) {
-    setwd(el_fold)
     return(cat())
   }
 
   fwrite(clean_s, "stands_info.csv")
 
   source("la_heur.txt")
+  .GlobalEnv$stand_util <- stand_util
+
+  suppressWarnings(dir.create("schedules"))
+  for(i in seq(length(schedules))) fwrite(schedules[[i]], file = paste0("schedules/", names(schedules)[i],".csv"))
 
   res_sch <- 0
   if(!missing("sa_csv")){
     if(!is.na(sa_csv)) {
+      sch_test <- unique(utils_sa[[group]], by = "callsign")
       for(inu in 1){
         estabe = 0
         cat0("## SA csv evaluation")
@@ -419,9 +447,8 @@ sae_heur2 <- function(file, sch_to_test = 1:10, sa_csv, group, get_grade){
           cat0()
           next
         }
-        estabe = estabe + 1
-
-        res <- myTryCatch(sa_heur(schedule = group, stand_info = "stands_info.csv"), nmb = 3)
+        res <- myTryCatch(sa_heur(schedule = list.files("schedules/", full.names = T)[group],
+                                  stand_info = "stands_info.csv"), nmb = 3)
 
         cat0(res$tspent)
         if(!is.null(res$warning)) {
@@ -432,11 +459,20 @@ sae_heur2 <- function(file, sch_to_test = 1:10, sa_csv, group, get_grade){
           cat0("ERROR: Code doesn't run")
           cat0(as.character(res$error))
           next
+        } else {
+          res <- res$value
+          if(sum(sch_test[, !callsign %in% res$callsign]) > 0) {
+            cat0("ERROR: Output doesn't have all callsigns")
+            next
+          } else {
+            estabe = estabe + 1
+            estabe <- estabe + as.integer(sum(sch_test[, !callsign %in% loseu$callsign]) == 0)
+          }
         }
       }
-      estabe = estabe + 1
       res_sch <- 10*estabe/2
       cat0("Grade: ", res_sch)
+      cat0()
       rm(loseu, res, estabe)
     }
   }
@@ -445,7 +481,8 @@ sae_heur2 <- function(file, sch_to_test = 1:10, sa_csv, group, get_grade){
   notaf <- c()
   for(el_j in n_sch){
     cat0("# File: ", eval_files$sa_heur$File[el_j])
-    res <- myTryCatch(sa_heur(schedule = el_j, stand_info = "stands_info.csv"), nmb = 3)
+    res <- myTryCatch(sa_heur(schedule = list.files("schedules/", full.names = T)[el_j],
+                              stand_info = "stands_info.csv"), nmb = 3)
 
     cat0(res$tspent)
     if(!is.null(res$warning)) {
@@ -459,29 +496,19 @@ sae_heur2 <- function(file, sch_to_test = 1:10, sa_csv, group, get_grade){
       next
     }
     res <- res$value
-    # cat0("Heuristic result:")
-    # print(res)
-    fwrite(res, "el_res.csv")
 
-    if(length(n_sch) == 1){
-      sa_perun(sol = "el_res.csv", gr = el_j, satype = "heur")
-      next
-    }
+    fwrite(res, "el_res.csv")
 
     nota <- grade_mahe(get_eval(sol = "el_res.csv", gr = el_j)$r1, "heur", el_j)
     notaf <- c(notaf, nota)
     cat0("Grade: ", nota)
     cat0()
-    unlink("el_res.csv")
   }
-  unlink("stands_info.csv")
-  unlink("la_heur.txt")
-  rm(sa_heur, envir = .GlobalEnv)
 
-  cat0("Heuristic grade (expected): ", round(mean(notaf),2))
+  cat0("Heuristic grade (expected): ", round(mean(notaf), 2))
   cat0()
-  if(!missing("sa_csv")) cat0("Final grade (expected): ", round((mean(notaf)*15 + res_sch*5)/20,2))
-  if(get_grade) return(round((mean(notaf)*15 + res_sch*5)/20,2))
+  if(!missing("sa_csv")) cat0("Final grade (expected): ", round((mean(notaf)*15 + res_sch*5)/20, 2))
+  if(get_grade) return(round((mean(notaf)*15 + res_sch*5)/20, 2))
   return(cat())
 }
 
@@ -540,7 +567,7 @@ sae_heur1 <- function(file, sch_to_test = 1:10, st_fill, get_grade){
   pena_fill = -10
   if(!missing("st_fill")){
     if(!is.na(st_fill)) {
-      cat0("## Stand preferences evaluation (BETA)")
+      cat0("## Stand preferences evaluation")
       pena_fill = 0
       fill_seu <- fread(st_fill)
       stmix <- merge(stands_clean2, fill_seu, by = c("ramp","stand","ac_max","S1","S2","S3"))
@@ -624,16 +651,23 @@ sae_heur1 <- function(file, sch_to_test = 1:10, st_fill, get_grade){
     if(sum(is.na(n_sch))) return(cat0("ERROR: sch_to_test must have values between 1 to 10"))
 
     file.copy(from = file, to = paste0(tempdir(), "/la_heur.txt"), overwrite = T)
+
     setwd(tempdir())
+    on.exit({
+      unlink("schedules/", recursive = T)
+      unlink("data/", recursive = T)
+      unlink("stands_info.csv")
+      unlink("la_heur.txt")
+      suppressWarnings(rm(stand_util, envir = .GlobalEnv))
+      setwd(el_fold)
+    })
 
     if(!check_functions("la_heur.txt", loops_max$sa_heur1)) {
-      setwd(el_fold)
       return(cat())
     }
     #test the code ----
 
     if(!codi_ok("la_heur.txt")) {
-      setwd(el_fold)
       return(cat())
     }
 
@@ -762,14 +796,6 @@ sae_heur1 <- function(file, sch_to_test = 1:10, st_fill, get_grade){
       notaf <- c(notaf, nota)
       cat0()
     }
-
-    unlink("schedules/", recursive = T)
-    unlink("data/", recursive = T)
-    unlink("stands_info.csv")
-    unlink("la_heur.txt")
-    rm(stand_util, envir = .GlobalEnv)
-    setwd(el_fold)
-
     cat0("Heuristic grade (expected): ", round(mean(notaf), 2))
   }
 

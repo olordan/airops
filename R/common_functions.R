@@ -32,8 +32,10 @@ check_functions <- function(file, loops = 0){
   own_fnc <- data[line1 %in% data[token %in% "FUNCTION", line1] & token == "SYMBOL", text]
 
   data <- data[which(data$token != "COMMENT"),]
-  ini <- data[min(which(token %in% "FUNCTION")), line1] == min(data$line1)
-  fi <- data[max(which(token %in% "'}'")), line1] == max(data$line1)
+  ini <- suppressWarnings(data[min(which(token %in% "FUNCTION")), line1] == min(data$line1))
+  if(is.na(ini)) ini = F
+  fi <- suppressWarnings(data[max(which(token %in% "'}'")), line1] == max(data$line1))
+  if(is.na(fi)) fi = F
 
   allow_funct <- c("`:=`","abs","apply","as.character","as.factor","as.IDate","as.integer",
                    "as.ITime","as.numeric","as.POSIXct","assign","break","c","cbind","ceiling",
