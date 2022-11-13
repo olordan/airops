@@ -144,15 +144,21 @@ rse_heur <- function(file, toys_to_test = 1:10, recat_csv, icao_csv, group, get_
   file.copy(from = file, to = paste0(tempdir(), "/la_heur.txt"), overwrite = T)
 
   setwd(tempdir())
+  on.exit({
+    unlink("schedules/", recursive = T)
+    unlink("rs_toys/", recursive = T)
+    unlink("data/", recursive = T)
+    unlink("la_heur.txt")
+    suppressWarnings(rm(rs_heur, envir = .GlobalEnv))
+    setwd(el_fold)
+  })
 
   if(!check_functions("la_heur.txt", loops_max$rs_heur)){
-    setwd(el_fold)
     return(cat())
   }
   #test the code ----
 
   if(!codi_ok("la_heur.txt")){
-    setwd(el_fold)
     return(cat())
   }
 
@@ -305,13 +311,6 @@ rse_heur <- function(file, toys_to_test = 1:10, recat_csv, icao_csv, group, get_
   cat0()
   if(!missing("recat_csv") & !missing("icao_csv")) cat0("Final grade (expected): ", round((mean(notaf)*10 + res_sch*5)/15,2))
 
-  unlink("schedules/", recursive = T)
-  unlink("rs_toys/", recursive = T)
-  unlink("data/", recursive = T)
-  unlink("la_heur.txt")
-  rm(rs_heur, envir = .GlobalEnv)
-
-  setwd(el_fold)
   if(get_grade) return(round((mean(notaf)*10 + res_sch*5)/15,2))
   return(cat())
 }
