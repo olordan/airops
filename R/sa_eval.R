@@ -1,4 +1,4 @@
-PlottingSolution_ggplot <- function(stands_ids, solution){#
+PlottingSolution_ggplot <- function(stands_ids, solution){
   stands_ids <- copy(stands_ids)
   stands_ids[order(-seq(.N)), mark := as.character(seq(.N))]
 
@@ -132,14 +132,15 @@ get_eval <- function(sol, gr) {
   isok_inc[, inc := NULL]
   isok_3 <- merge(isok, isok_inc, by = c("stand", "time"), all.x = T, allow.cartesian = T)
   setnames(isok_3, c("id.x", "op.x", "id.y", "op.y"), c("id1", "op1", "id2", "op2"))
-  isok_3 <- isok_3[op1 != op2 & id1 != id2]
+  # isok_3 <- isok_3[op1 != op2 & id1 != id2]
+  isok_3 <- isok_3[id1 != id2]
   err3 <- err4 <- err5 <- err6 <- 0
   te456 <- nrow(isok_3)>0
   if(te456){
     isok_3[id1 > id2, `:=` (id1 = id2, id2 = id1, op1 = op2, op2 = op1)]
     isok_3 <- unique(isok_3)
-    max(isok_3[, .N, by = .(stand, time)][,N])*2
-    unique(isok_3$id1, isok_3$id2)
+    # max(isok_3[, .N, by = .(stand, time)][,N])*2
+    # unique(isok_3$id1, isok_3$id2)
     isok_4 <- rbind(isok_3[,.(stand, time, id = id1, op = op1)], isok_3[,.(stand, time, id = id2, op = op2)])
     isok_4[, dups := rowid(stand, time)]
     err3 <- max(isok_4$dups) #max de id solapats en un mateix stand i hora
@@ -149,12 +150,17 @@ get_eval <- function(sol, gr) {
     err5 <- length(unique(err456$stand)) #num de stands diferents solapats
     err6 <- nrow(err456) #num de operacions solapades
 
+    isok_3[, time := NULL]
+    isok_3 <- unique(isok_3)
+    isok_3 <- merge(isok_3, loseu[, .(id1 = id, op1 = op, callsign1 = callsign)], by = c("id1", "op1"))
+    isok_3 <- merge(isok_3, loseu[, .(id2 = id, op2 = op, callsign2 = callsign)], by = c("id2", "op2"))
+
+    isok_3 <- isok_3[, .(stand = paste0(stand, collapse = "-")), by = .(callsign1,op1,callsign2,op2)]
+
     loseu <- merge(loseu, err456[, .(id, op, err = stand)], by = c("id", "op"), all.x = T)
     loseu[!is.na(err), op := "O"]
     loseu[, err := NULL]
     loseu <- unique(loseu)
-    isok_3[, time := NULL]
-    isok_3 <- unique(isok_3)
   }
 
   tows <- dcast(loseu[op != "O"], id ~ op, value.var = "stand")
