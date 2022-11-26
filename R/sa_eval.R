@@ -191,7 +191,7 @@ get_eval <- function(sol, gr) {
 
 
   meansd <- loseu[, mean(util), by = id][, .(mean = mean(V1), sd = sd(V1))]
-  r1 <- sum(loseu$util) - 500*(err1 + err2) #total utility
+  r1 <- sum(loseu$util) - 500*(err1 + err2 + err4) #total utility
   r2 <- meansd$mean #mean utility de cada mean de id
   r3 <- meansd$sd #sd utility de cada mean de id
 
