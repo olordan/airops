@@ -1,4 +1,4 @@
-PlottingSolution_ggplot <- function(stands_ids, solution){
+PlottingSolution_ggplot <- function(stands_ids, solution){#
   stands_ids <- copy(stands_ids)
   stands_ids[order(-seq(.N)), mark := as.character(seq(.N))]
 
