@@ -158,7 +158,7 @@ get_eval <- function(sol, gr) {
     isok_3 <- isok_3[, .(stand = paste0(stand, collapse = "-")), by = .(callsign1,op1,callsign2,op2)]
 
     loseu <- merge(loseu, err456[, .(id, op, err = stand)], by = c("id", "op"), all.x = T)
-    loseu[!is.na(err), op := "O"]
+    loseu[!is.na(err), `:=` (op = "O", util = 0)]
     loseu[, err := NULL]
     loseu <- unique(loseu)
   }
@@ -257,7 +257,7 @@ sa_perun <- function(sol, gr, satype = c("manual", "heur"), get_grade){
       cat0()
     }
     if(res$err3 > 0) {
-      cat0(res$err6," operation/s overlapped:")
+      cat0(res$err4," operation/s overlapped:")
       print(res$isok_3, nrows = 10)
       cat0()
     }
