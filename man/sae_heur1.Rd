@@ -12,8 +12,6 @@ sae_heur1(file, sch_to_test = 1:10, st_fill, get_grade)
 \item{sch_to_test}{A vector with schedule numbers to check your heuristic against. Database has schedules and by default it runs all of them.}
 
 \item{st_fill}{File name in working directory or path to file. File ('lebl_stands.csv') following the exact format from Atenea. Stand priorities filled.}
-
-\item{group}{Number of your group.}
 }
 \value{
 Report with information about your result.

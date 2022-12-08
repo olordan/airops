@@ -526,7 +526,6 @@ sae_heur2 <- function(file, sch_to_test = 1:10, sa_csv, group, get_grade){
 #' @param file File name in working directory or path to file. File ('stand_util.txt') following the exact format from Atenea.
 #' @param sch_to_test A vector with schedule numbers to check your heuristic against. Database has schedules and by default it runs all of them.
 #' @param st_fill File name in working directory or path to file. File ('lebl_stands.csv') following the exact format from Atenea. Stand priorities filled.
-#' @param group Number of your group.
 #'
 #' @returns
 #' Report with information about your result.
