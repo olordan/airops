@@ -574,8 +574,8 @@ sae_heur1 <- function(file, sch_to_test = 1:10, st_fill, get_grade){
     if(!is.na(st_fill)) {
       cat0("## Stand preferences evaluation")
       fill_seu <- fread(st_fill)
-      if(names(fill_seu) != c("ramp","stand","ac_max","S1","S2","S3","contact",
-                              "T1","T2","sch","shut","no_sch","no_ue","park")){
+      if(!identical(names(fill_seu), c("ramp","stand","ac_max","S1","S2","S3","contact",
+                              "T1","T2","sch","shut","no_sch","no_ue","park"))){
         cat0("Please, upload the right LEBL stands table")
       } else {
         pena_fill = 0
