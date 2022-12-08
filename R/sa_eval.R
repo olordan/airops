@@ -809,7 +809,7 @@ sae_heur1 <- function(file, sch_to_test = 1:10, st_fill, get_grade){
     cat0("Heuristic grade (expected): ", round(mean(notaf), 2))
   }
 
-  if(!missing(file) & !missing(st_fill)) cat0("\nFinal grade (expected): ", round(mean(notaf), 2) + pena_fill)
-  if(get_grade) return(round(mean(notaf), 2) + pena_fill)
+  if(!missing(file) & !missing(st_fill)) cat0("\nFinal grade (expected): ", max(0, round(mean(notaf), 2) + pena_fill))
+  if(get_grade) return(max(0, round(mean(notaf), 2) + pena_fill))
   return(cat())
 }
