@@ -320,7 +320,7 @@ sae_manual <- function(file, group, sa_type = c("manual", "heur"), get_grade){
   if(sa_type[1] == "heur"){
     if(fl_name != "sa_heur.csv") return(cat0("ERROR: your file must be named 'sa_heur.csv'"))
   } else {
-  if(fl_name != "sa_result.csv") return(cat0("ERROR: your file must be named 'sa_result.csv'"))
+    if(fl_name != "sa_result.csv") return(cat0("ERROR: your file must be named 'sa_result.csv'"))
   }
   rm(fl_name)
 
@@ -329,8 +329,8 @@ sae_manual <- function(file, group, sa_type = c("manual", "heur"), get_grade){
 
 stand_util <- function(schedule, stand_info){
   utsa <- copy(utils_sa[[as.integer(substr(schedule,
-                                                    nchar(schedule) - 5,
-                                                    nchar(schedule) - 4))]])
+                                           nchar(schedule) - 5,
+                                           nchar(schedule) - 4))]])
   utsa[, poss := NULL]
   return(utsa)
 }
@@ -573,77 +573,82 @@ sae_heur1 <- function(file, sch_to_test = 1:10, st_fill, get_grade){
   if(!missing("st_fill")){
     if(!is.na(st_fill)) {
       cat0("## Stand preferences evaluation")
-      pena_fill = 0
       fill_seu <- fread(st_fill)
-      stmix <- merge(stands_clean2, fill_seu, by = c("ramp","stand","ac_max","S1","S2","S3"))
-      stmix[, id0 := seq(.N)]
-      stmix[, `:=` (contact = abs(contact.x - contact.y), T1 = abs(T1.x - T1.y),
-                    T2 = abs(T2.x - T2.y), sch = abs(sch.x - sch.y),
-                    shut = abs(shut.x - shut.y), no_sch = abs(no_sch.x - no_sch.y),
-                    no_ue = abs(no_ue.x - no_ue.y),  park = abs(park.x - park.y))]
+      if(names(fill_seu) != c("ramp","stand","ac_max","S1","S2","S3","contact",
+                              "T1","T2","sch","shut","no_sch","no_ue","park")){
+        cat0("Please, upload the right LEBL stands table")
+      } else {
+        pena_fill = 0
+        stmix <- merge(stands_clean2, fill_seu, by = c("ramp","stand","ac_max","S1","S2","S3"))
+        stmix[, id0 := seq(.N)]
+        stmix[, `:=` (contact = abs(contact.x - contact.y), T1 = abs(T1.x - T1.y),
+                      T2 = abs(T2.x - T2.y), sch = abs(sch.x - sch.y),
+                      shut = abs(shut.x - shut.y), no_sch = abs(no_sch.x - no_sch.y),
+                      no_ue = abs(no_ue.x - no_ue.y),  park = abs(park.x - park.y))]
 
-      stmix[sch.x == 0 & sch.y != 0, sch := 4]
-      stmix[shut.x == 0 & shut.y != 0, shut := 4]
-      stmix[no_sch.x == 0 & no_sch.y != 0, no_sch := 4]
-      stmix[no_ue.x == 0 & no_ue.y != 0, no_ue := 4]
-      stmix[park.x == 0 & park.y != 0, park := 4]
+        stmix[sch.x == 0 & sch.y != 0, sch := 4]
+        stmix[shut.x == 0 & shut.y != 0, shut := 4]
+        stmix[no_sch.x == 0 & no_sch.y != 0, no_sch := 4]
+        stmix[no_ue.x == 0 & no_ue.y != 0, no_ue := 4]
+        stmix[park.x == 0 & park.y != 0, park := 4]
 
-      stmix[sch.x != 0 & sch.y == 0, sch := abs(6 - sch.x)]
-      stmix[shut.x != 0 & shut.y == 0, shut := abs(6 - shut.x)]
-      stmix[no_sch.x != 0 & no_sch.y == 0, no_sch := abs(6 - no_sch.x)]
-      stmix[no_ue.x != 0 & no_ue.y == 0, no_ue := abs(6 - no_ue.x)]
-      stmix[park.x != 0 & park.y == 0, park := abs(6 - park.x)]
+        stmix[sch.x != 0 & sch.y == 0, sch := abs(6 - sch.x)]
+        stmix[shut.x != 0 & shut.y == 0, shut := abs(6 - shut.x)]
+        stmix[no_sch.x != 0 & no_sch.y == 0, no_sch := abs(6 - no_sch.x)]
+        stmix[no_ue.x != 0 & no_ue.y == 0, no_ue := abs(6 - no_ue.x)]
+        stmix[park.x != 0 & park.y == 0, park := abs(6 - park.x)]
 
-      if(nrow(stmix) < 209) {
-        pena_fill = pena_fill + 10
-        cat0("Please check you have all rows and haven't changed any column with information: -10 p")
+        if(nrow(stmix) < 209) {
+          pena_fill = pena_fill + 10
+          cat0("Please check you have all rows and haven't changed any column with information: -10 p")
+        }
+        tst <- stmix[contact > 0, stand]
+        if(length(tst) > 0) {
+          pena_fill = pena_fill + length(tst)/2
+          cat0("Inconsistent Contact information: -", length(tst)/2, " p")
+          cat0("Stand/s: ", paste(tst, collapse = ", "))
+        }
+        tst <- stmix[T1 > 0 | T2 > 0, stand]
+        if(length(tst) > 0) {
+          pena_fill = pena_fill + length(tst)/2
+          cat0("Inconsistent Terminal information: -", length(tst)/2, " p")
+          cat0("Stand/s: ", paste(tst, collapse = ", "))
+        }
+        tst <- stmix[sch > 1 & sch < 5, stand]
+        if(length(tst) > 0) {
+          pena_fill = pena_fill + length(tst)/2
+          cat0("Inconsistent Schengen information: -", length(tst)/2, " p")
+          cat0("Stand/s: ", paste(tst, collapse = ", "))
+        }
+        tst <- stmix[shut > 1 & shut < 5, stand]
+        if(length(tst) > 0) {
+          pena_fill = pena_fill + length(tst)/2
+          cat0("Inconsistent Shuttle information: -", length(tst)/2, " p")
+          cat0("Stand/s: ", paste(tst, collapse = ", "))
+        }
+        tst <- stmix[no_sch > 1 & no_sch < 5, stand]
+        if(length(tst) > 0) {
+          pena_fill = pena_fill + length(tst)/2
+          cat0("Inconsistent Non-Schengen information: -", length(tst)/2, " p")
+          cat0("Stand/s: ", paste(tst, collapse = ", "))
+        }
+        tst <- stmix[no_ue > 1 & no_ue < 5, stand]
+        if(length(tst) > 0) {
+          pena_fill = pena_fill + length(tst)/2
+          cat0("Inconsistent Non-UE information: -", length(tst)/2, " p")
+          cat0("Stand/s: ", paste(tst, collapse = ", "))
+        }
+        tst <- stmix[park > 1 & park < 5, stand]
+        if(length(tst) > 0) {
+          pena_fill = pena_fill + length(tst)/2
+          cat0("Inconsistent Parking information: -", length(tst)/2, " p")
+          cat0("Stand/s: ", paste(tst, collapse = ", "))
+        }
+        pena_fill = -min(10, pena_fill)
+        if(pena_fill < 0) cat0("\nPenalty for Stand preferences: ", pena_fill, "/10 = ", round(pena_fill/10, 2), " p")
+        if(pena_fill == 0) cat0("Your LEBL stands file is correct: -0 p")
+        cat0()
       }
-      tst <- stmix[contact > 0, stand]
-      if(length(tst) > 0) {
-        pena_fill = pena_fill + length(tst)/2
-        cat0("Inconsistent Contact information: -", length(tst)/2, " p")
-        cat0("Stand/s: ", paste(tst, collapse = ", "))
-      }
-      tst <- stmix[T1 > 0 | T2 > 0, stand]
-      if(length(tst) > 0) {
-        pena_fill = pena_fill + length(tst)/2
-        cat0("Inconsistent Terminal information: -", length(tst)/2, " p")
-        cat0("Stand/s: ", paste(tst, collapse = ", "))
-      }
-      tst <- stmix[sch > 1 & sch < 5, stand]
-      if(length(tst) > 0) {
-        pena_fill = pena_fill + length(tst)/2
-        cat0("Inconsistent Schengen information: -", length(tst)/2, " p")
-        cat0("Stand/s: ", paste(tst, collapse = ", "))
-      }
-      tst <- stmix[shut > 1 & shut < 5, stand]
-      if(length(tst) > 0) {
-        pena_fill = pena_fill + length(tst)/2
-        cat0("Inconsistent Shuttle information: -", length(tst)/2, " p")
-        cat0("Stand/s: ", paste(tst, collapse = ", "))
-      }
-      tst <- stmix[no_sch > 1 & no_sch < 5, stand]
-      if(length(tst) > 0) {
-        pena_fill = pena_fill + length(tst)/2
-        cat0("Inconsistent Non-Schengen information: -", length(tst)/2, " p")
-        cat0("Stand/s: ", paste(tst, collapse = ", "))
-      }
-      tst <- stmix[no_ue > 1 & no_ue < 5, stand]
-      if(length(tst) > 0) {
-        pena_fill = pena_fill + length(tst)/2
-        cat0("Inconsistent Non-UE information: -", length(tst)/2, " p")
-        cat0("Stand/s: ", paste(tst, collapse = ", "))
-      }
-      tst <- stmix[park > 1 & park < 5, stand]
-      if(length(tst) > 0) {
-        pena_fill = pena_fill + length(tst)/2
-        cat0("Inconsistent Parking information: -", length(tst)/2, " p")
-        cat0("Stand/s: ", paste(tst, collapse = ", "))
-      }
-      pena_fill = -min(10, pena_fill)
-      if(pena_fill < 0) cat0("\nPenalty for Stand preferences: ", pena_fill, "/10 = ", round(pena_fill/10, 2), " p")
-      if(pena_fill == 0) cat0("Your LEBL stands file is correct: -0 p")
-      cat0()
     }
   }
   pena_fill <- round(pena_fill/10, 2)
