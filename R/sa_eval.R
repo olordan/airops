@@ -423,7 +423,7 @@ sae_heur2 <- function(file, sch_to_test = 1:10, sa_csv, group, get_grade){
       sch_test <- unique(utils_sa[[group]], by = "callsign")
       for(inu in 1){
         estabe = 0
-        cat0("## SA csv evaluation")
+        cat0("## SA csv evaluation - just checking the format of your file")
         loseu <- fread("sa_heur.csv", header = T)
         cat0("Your file:")
         print(loseu)
